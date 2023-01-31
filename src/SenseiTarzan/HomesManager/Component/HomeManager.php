@@ -78,7 +78,7 @@ class HomeManager
             }
             $this->adminHomeUI($player, $homePlayer, $homeId);
         });
-        $ui->setTitle(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::title_home_list()));
+        $ui->setTitle(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::title_home_list($homePlayer->getPlayer())));
 
         foreach ($homePlayer->getHomes() as $homeId => $home){
             $ui->addButton($home->getName(), label: $homeId);
