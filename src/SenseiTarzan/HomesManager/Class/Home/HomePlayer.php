@@ -27,7 +27,7 @@ class HomePlayer
 
     public function __construct(private Player|string $player)
     {
-        $this->dataHomes = new Config(Path::join(PLUGIN_DATA_PATH, "datas", strtolower($this->player->getName()) . ".json"));
+        $this->dataHomes = new Config(Path::join(PLUGIN_DATA_PATH, "datas", strtolower($this->getPlayerName()) . ".json"));
         $this->loadHomes();
     }
 
