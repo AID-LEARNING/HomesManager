@@ -20,8 +20,9 @@ class HomeCooldown extends Task
 
     private static array $playerInCoolDown = [];
 
-    public function __construct(private Player $player, private int $timer = 3, private Home $home)
+    public function __construct(private Player $player, private int|null $timer, private Home $home)
     {
+        $this->timer ??= 3;
         if (in_array($this->player->getName(), self::$playerInCoolDown)) return;
         self::$playerInCoolDown[] = $this->player->getName();
         $this->lastPosition = $this->player->getPosition();
