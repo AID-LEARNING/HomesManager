@@ -10,25 +10,25 @@ use WeakMap;
 class HomePlayerManager
 {
     use SingletonTrait;
-    private WeakMap $players;
+    private array $players = [];
     public function __construct()
     {
-        $this->players = new WeakMap();
     }
 
     public function loadPlayer(Player $player): void{
-         $this->players[$player] = new HomePlayer($player);
+         $this->players[strtolower($player->getName())] = new HomePlayer($player);
     }
     public function loadPlayerOffline(string $player): HomePlayer{
          return new HomePlayer($player);
     }
 
     public function getPlayer(Player|string $player): HomePlayer{
-        return $this->players[$player] ??= $this->loadPlayerOffline($player);
+        $name= $player instanceof Player  ?$player->getName() : $player;
+        return $this->players[strtolower($name)] ??= $this->loadPlayerOffline($name);
     }
 
     public function unloadPlayer(Player $player): void{
-        $this->players->offsetUnset($player);
+        unset($this->players[strtolower($player->getName())]);
     }
 
 }

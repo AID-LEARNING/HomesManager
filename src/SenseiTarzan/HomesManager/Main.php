@@ -2,6 +2,7 @@
 
 namespace SenseiTarzan\HomesManager;
 
+use CortexPE\Commando\PacketHooker;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
 use SenseiTarzan\ExtraEvent\Component\EventLoader;
@@ -35,6 +36,9 @@ class Main extends PluginBase
 
     protected function onEnable(): void
     {
+        if (!PacketHooker::isRegistered()){
+            PacketHooker::register($this);
+        }
         EventLoader::loadEventWithClass($this, PlayerListener::class);
         $this->getServer()->getCommandMap()->register("senseitarzan", new HomeCommand($this,"home"));
         LanguageManager::getInstance()->loadCommands("home");
