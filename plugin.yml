@@ -1,7 +1,7 @@
 name: HomesManager
 authors:
   - SenseiTarzan
-version: 1.0.2
+version: 1.0.0
 main: SenseiTarzan\HomesManager\Main
 api:
   - "5.0.0"
