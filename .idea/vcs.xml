@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../RolesManager" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../Virions/LibExtraPath" vcs="Git" />
   </component>
 </project>

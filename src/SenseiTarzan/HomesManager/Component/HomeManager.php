@@ -49,7 +49,7 @@ class HomeManager
     }
 
     public function loadSound(): void{
-        foreach ($this->config->get("sound") as $name => $information){
+        foreach ($this->config->get("sounds") as $name => $information){
             $this->sounds[strtolower($name)] = new HomeSound($information['name'], $information['volume'], $information['pitch']);
         }
     }

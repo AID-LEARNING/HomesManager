@@ -8,5 +8,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="RolesManager" />
     <orderEntry type="module" module-name="Commando" />
+    <orderEntry type="module" module-name="LibExtraPath" />
   </component>
 </module>
