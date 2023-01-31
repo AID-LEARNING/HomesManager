@@ -22,4 +22,3 @@ permissions:
   home.command.permissions:
     description: "Allows to see the list of houses or to teleport to one of these homes."
     default: true
-
