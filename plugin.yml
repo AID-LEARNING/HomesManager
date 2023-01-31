@@ -15,11 +15,11 @@ permissions:
     default: true
   set.home.command.permissions:
     description: "Allow to put a home"
-    default: op
+    default: true
   replace.home.command.permissions:
     description: "Permit to change the position of one of these homes."
-    default: op
+    default: true
   home.command.permissions:
     description: "Allows to see the list of houses or to teleport to one of these homes."
-    default: op
+    default: true
 
