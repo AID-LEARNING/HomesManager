@@ -18,13 +18,13 @@ class HomeCooldown extends Task
 
     private Position $lastPosition;
 
-    private static array $playerInCoolDown = [];
+    public static array $playerInCoolDown = [];
 
     public function __construct(private Player $player, private int|null $timer, private Home $home)
     {
         $this->timer ??= 3;
-        if (in_array($this->player->getName(), self::$playerInCoolDown)) return;
-        self::$playerInCoolDown[] = $this->player->getName();
+        if (self::playerInList($this->player)) return;
+        self::addPlayerInList($this->player);
         $this->lastPosition = $this->player->getPosition();
         Main::getInstance()->getScheduler()->scheduleDelayedRepeatingTask($this, $this->timer, 20);
     }
@@ -63,8 +63,21 @@ class HomeCooldown extends Task
         $this->getHandler()?->cancel();
     }
 
+
+
+    public static function playerInList(Player $player): bool{
+        return in_array($player->getName(), self::$playerInCoolDown);
+    }
+    public static function removePlayerInList(Player $player){
+
+        self::$playerInCoolDown = array_diff(self::$playerInCoolDown, [$player->getName()]);
+    }
+    private static function addPlayerInList(Player $player){
+
+        self::$playerInCoolDown[] = $player->getName();
+    }
     public function onCancel(): void
     {
-        self::$playerInCoolDown = array_diff(self::$playerInCoolDown, [$this->player->getName()]);
+        self::removePlayerInList($this->player);
     }
 }

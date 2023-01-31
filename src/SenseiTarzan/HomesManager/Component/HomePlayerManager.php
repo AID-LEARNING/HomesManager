@@ -2,9 +2,11 @@
 
 namespace SenseiTarzan\HomesManager\Component;
 
+use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\player\Player;
 use pocketmine\utils\SingletonTrait;
 use SenseiTarzan\HomesManager\Class\Home\HomePlayer;
+use SenseiTarzan\HomesManager\Task\HomeCooldown;
 use WeakMap;
 
 class HomePlayerManager
@@ -29,6 +31,10 @@ class HomePlayerManager
 
     public function unloadPlayer(Player $player): void{
         unset($this->players[strtolower($player->getName())]);
+        if (HomeCooldown::playerInList($player)){
+            HomeCooldown::removePlayerInList($player);
+            $player->getEffects()->remove(VanillaEffects::BLINDNESS());
+        }
     }
 
 }
