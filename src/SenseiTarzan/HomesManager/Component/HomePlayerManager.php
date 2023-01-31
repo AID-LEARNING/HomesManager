@@ -24,7 +24,7 @@ class HomePlayerManager
     }
 
     public function getPlayer(Player|string $player): HomePlayer{
-        return $this->players[$player->getName()] ??= $this->loadPlayerOffline($player);
+        return $this->players[$player] ??= $this->loadPlayerOffline($player);
     }
 
     public function unloadPlayer(Player $player): void{
