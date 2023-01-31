@@ -1,0 +1,25 @@
+name: HomesManager
+authors:
+  - SenseiTarzan
+version: 1.0.2
+main: SenseiTarzan\HomesManager\Main
+api:
+  - "5.0.0"
+  - "4.0.0"
+permissions:
+  admin.home.command.permissions:
+    description: "Allows access to a user interface to manage a player's homes."
+    default: op
+  remove.home.command.permissions:
+    description: "Allows to remove one of these home"
+    default: true
+  set.home.command.permissions:
+    description: "Allow to put a home"
+    default: op
+  replace.home.command.permissions:
+    description: "Permit to change the position of one of these homes."
+    default: op
+  home.command.permissions:
+    description: "Allows to see the list of houses or to teleport to one of these homes."
+    default: op
+

@@ -1,0 +1,20 @@
+timer: 3 # 3second for teleport in home or false for disable cooldown teleportation
+
+sounds:
+  denied:
+    name: "note.bassattack"
+    volume: 1 # not required
+    pitch: 1 # not required
+  clock:
+    name: "note.harp"
+    volume: 1 # not required
+    pitch: 1 # not required
+  success:
+    name: "note.pling"
+    volume: 1 # not required
+    pitch: 1 # not required
+
+size-home-permission:
+  pocketmine.group.operator: 999
+  vip.permission.home: 10
+  pocketmine.group.user: 5 #default for all player who no has another permissions
