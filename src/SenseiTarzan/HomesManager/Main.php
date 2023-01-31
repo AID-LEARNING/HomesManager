@@ -22,6 +22,7 @@ class Main extends PluginBase
     {
         self::setInstance($this);
         define("SenseiTarzan\\HomesManager\\PLUGIN_DATA_PATH", $this->getDataFolder());
+        @mkdir(Path::join($this->getDataFolder(), "datas"));
         if (!file_exists(Path::join($this->getDataFolder(), "config.yml"))) {
             foreach (PathScanner::scanDirectoryGenerator($search = Path::join(dirname(__DIR__,3) , "resources")) as $file){
                 @$this->saveResource(str_replace($search, "", $file));
