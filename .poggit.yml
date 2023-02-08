@@ -2,6 +2,7 @@
 branches:
   - stable
   - beta
+  - pm4
 projects:
   HomesManager:
     path: ""
