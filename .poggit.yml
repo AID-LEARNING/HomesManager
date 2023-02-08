@@ -2,6 +2,7 @@
 branches:
   - stable
   - beta
+  - pm4
 projects:
   HomesManager:
     path: ""
@@ -18,8 +19,7 @@ projects:
       - src: AID-LEARNING/IconForm/libIconForm
         version: ^1.0.0
       - src: AID-LEARNING/libExtraPath/libExtraPathConfig
-        version: ^1.0.1
-        branch: pm5
+        version: ^1.0.0
       - src: Paroxity/Commando/Commando
         version: ^3.0.0
 ...
