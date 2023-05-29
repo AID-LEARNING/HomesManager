@@ -2,6 +2,7 @@
 branches:
   - stable
   - beta
+  - pm4
 projects:
   HomesManager:
     path: ""
@@ -22,5 +23,5 @@ projects:
         branch: pm5
       - src: Paroxity/Commando/Commando
         version: ^3.0.0
-
 ...
+

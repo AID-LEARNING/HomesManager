@@ -1,11 +1,10 @@
 name: HomesManager
 authors:
   - SenseiTarzan
-version: 1.0.0
+version: 1.0.1
 main: SenseiTarzan\HomesManager\Main
 api:
   - "5.0.0"
-  - "4.0.0"
 permissions:
   admin.home.command.permissions:
     description: "Allows access to a user interface to manage a player's homes."
@@ -22,4 +21,3 @@ permissions:
   home.command.permissions:
     description: "Allows to see the list of houses or to teleport to one of these homes."
     default: true
-
