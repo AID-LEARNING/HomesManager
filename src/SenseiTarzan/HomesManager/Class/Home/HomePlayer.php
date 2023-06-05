@@ -2,15 +2,22 @@
 
 namespace SenseiTarzan\HomesManager\Class\Home;
 
+use Exception;
+use Generator;
 use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\world\Position;
+use SenseiTarzan\HomesManager\Class\Exception\HomeNotFoundException;
+use SenseiTarzan\HomesManager\Class\Exception\HomeSaveException;
+use SenseiTarzan\HomesManager\Class\Exception\MaxHomeException;
 use SenseiTarzan\HomesManager\Component\HomeManager;
+use SenseiTarzan\HomesManager\Main;
 use SenseiTarzan\HomesManager\Utils\CustomKnownTranslationFactory;
 use SenseiTarzan\LanguageSystem\Component\LanguageManager;
+use SOFe\AwaitGenerator\Await;
 use Symfony\Component\Filesystem\Path;
 use const SenseiTarzan\HomesManager\PLUGIN_DATA_PATH;
 
@@ -41,48 +48,125 @@ class HomePlayer
      * no work if $this->player is not Player
      * @internal
      */
-    public function addHome(string $name, Position $position): void{
+    public function addHome(string $name, Position $position): void
+    {
         if (!($this->player instanceof Player)) return;
-        if (count($this->homes) >= ($maxHome = HomeManager::getInstance()->getMaxHomeByPermissions($this->player))){
-            $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::error_home_max($maxHome)));
-            return;
-        }
-        if (isset($this->homes[$id = strtolower($name)])){
-            return;
-        }
-        $this->homes[$id] = $info = Home::create($name, $position);
-        $this->dataHomes->set($name, $info->jsonSerialize());
-        $this->dataHomes->save();
-        $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::add_home_player_sender($name, $position)));
+        Await::f2c(function () use ($name, $position) {
+            yield from $this->hasMaxHome($this->player);
+            yield from $this->addHomePromise(Home::create($name, $position));
+        }, function (Home $home) {
+            $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::add_home_player_sender($home->getName(), $home->getPosition())));
+        }, [
+            MaxHomeException::class => function (MaxHomeException $exception) {
+                $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::error_home_max($exception->getMessage())));
+            },
+            HomeSaveException::class => function (HomeSaveException $exception) {
+                Main::getInstance()->getLogger()->error("[{$this->player->getName()}] " . $exception->getMessage());
+            }
+        ]);
     }
+
+    private function hasMaxHome(Player $player): Generator
+    {
+        return Await::promise(function ($resolve, $reject) use ($player) {
+            Await::g2c($this->getHomes(), function (array $homes) use ($player, $resolve, $reject) {
+                if (count($homes) >= ($maxHome = HomeManager::getInstance()->getMaxHomeByPermissions($player))) {
+                    $reject(new MaxHomeException(strval($maxHome)));
+                    return;
+                }
+                $resolve();
+            }, $reject);
+        });
+    }
+
+    public function getHomes(): Generator
+    {
+        return Await::promise(function ($resolve){
+            $resolve($this->homes);
+        });
+    }
+    private function addHomePromise(Home $home): Generator{
+        return Await::promise(function ($resolve,$reject) use ($home){
+
+            try {
+
+                $this->homes[$home->getId()] = $home;
+                $this->dataHomes->set($home->getName(), $home->jsonSerialize());
+                $this->dataHomes->save();
+                $resolve($home);
+            }catch (Exception){
+                $reject(new HomeSaveException("Error save home " . $home->getName()));
+                return;
+            }
+        });
+    }
+
+    private function replaceHomePromise(string $name, Position $position) :Generator{
+        return Await::promise(function ($resolve,$reject) use ($name, $position){
+            Await::g2c($this->getHome($name), function (Home $home) use ($resolve, $reject, $position){
+                try {
+                    $home->setPosition($position);
+                    $this->dataHomes->set($home->getName(), $home->jsonSerialize());
+                    $this->dataHomes->save();
+                    $resolve($home);
+                }catch (Exception){
+                    $reject(new HomeSaveException("Error save home " . $home->getName()));
+                    return;
+                }
+            }, $reject);
+
+        });
+    }
+
 
     public function replaceHome(string $name, Position $position): void
     {
-        if (!isset($this->homes[$id = strtolower($name)])){
+        if (!isset($this->homes[strtolower($name)])) {
             $this->addHome($name, $position);
             return;
         }
-        ($info = $this->homes[$id])->setPosition($position);
-        $this->dataHomes->set($name, $info->jsonSerialize());
-        $this->dataHomes->save();
-        $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::replace_home_player_sender($name, $position)));
+        Await::g2c($this->replaceHomePromise($name, $position), function (Home $home) {
+            $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::replace_home_player_sender($home->getName(), $home->getPosition())));
+
+        }, [
+            HomeNotFoundException::class => function (HomeNotFoundException $exception) {
+                $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::error_home_no_exist($exception->getMessage())));
+            },
+            HomeSaveException::class => function (HomeSaveException $exception) {
+                Main::getInstance()->getLogger()->error("[{$this->player->getName()}] " . $exception->getMessage());
+            }
+        ]);
+    }
+    public function getHome(string $name): Generator{
+        return Await::promise(function ($resolve, $reject) use ($name){
+            if (!isset($this->homes[$id = strtolower($name)])){
+                $reject(new HomeNotFoundException($name));
+                return;
+            }
+            $resolve($this->homes[$id]);
+        });
     }
 
-    public function getHomes(): array{
-        return $this->homes;
-    }
-
-    public function getHome(string $name): false|Home{
-        return $this->homes[strtolower($name)] ?? false;
-    }
-
-    public function removeHome(string $name): bool
+    public function removeHome(string $name): Generator
     {
-        if (!isset($this->homes[strtolower($name)])) return false;
-        unset($this->homes[strtolower($name)]);
-        $this->dataHomes->remove($name);
-        $this->dataHomes->save();
-        return true;
+
+
+        return Await::promise(function ($resolve, $reject) use ($name) {
+            if (!isset($this->homes[$id = strtolower($name)])) {
+                $reject(new HomeNotFoundException($name));
+                return;
+            }
+            try {
+
+                $this->dataHomes->remove($name);
+                $this->dataHomes->save();
+                unset($this->homes[$id]);
+                $resolve();
+
+            } catch (Exception) {
+                $reject(new HomeSaveException("Error remove home " . $name));
+            }
+        });
     }
 
     /**
