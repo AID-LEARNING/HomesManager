@@ -53,7 +53,7 @@ class HomePlayer
         if (!($this->player instanceof Player)) return;
         Await::f2c(function () use ($name, $position) {
             yield from $this->hasMaxHome($this->player);
-            yield from $this->addHomePromise(Home::create($name, $position));
+            return yield from $this->addHomePromise(Home::create($name, $position));
         }, function (Home $home) {
             $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::add_home_player_sender($home->getName(), $home->getPosition())));
         }, [
