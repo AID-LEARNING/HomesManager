@@ -11,6 +11,7 @@ use pocketmine\Server;
 use pocketmine\utils\Config;
 use pocketmine\world\Position;
 use SenseiTarzan\HomesManager\Class\Exception\HomeNotFoundException;
+use SenseiTarzan\HomesManager\Class\Exception\HomePositionInvalidException;
 use SenseiTarzan\HomesManager\Class\Exception\HomeSaveException;
 use SenseiTarzan\HomesManager\Class\Exception\MaxHomeException;
 use SenseiTarzan\HomesManager\Component\HomeManager;
@@ -143,7 +144,12 @@ class HomePlayer
                 $reject(new HomeNotFoundException($name));
                 return;
             }
-            $resolve($this->homes[$id]);
+            $home = $this->homes[$id];
+            if (!$home->getPosition()) {
+                $reject(new HomePositionInvalidException($name));
+                return;
+            }
+            $resolve($home);
         });
     }
 

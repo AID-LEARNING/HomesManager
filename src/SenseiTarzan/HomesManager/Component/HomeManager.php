@@ -116,14 +116,7 @@ class HomeManager
                 ]);
                 return;
             }
-            Await::f2c(function () use ($homePlayer, $homeId): \Generator {
-                /** @var Home $home */
-                $home = yield from $homePlayer->getHome($homeId);
-                if (!$home->getPosition()) {
-                    throw new HomePositionInvalidException($homeId);
-                }
-                return $home;
-            }, function (Home $home) use ($player, $homePlayer): void {
+            Await::g2c($homePlayer->getHome($homeId), function (Home $home) use ($player, $homePlayer): void {
                 $player->teleport($home->getPosition());
                 $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::teleport_home_player_admin($homePlayer->getPlayerName(), $home->getName())));
 

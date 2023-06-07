@@ -52,14 +52,7 @@ class HomeCommand extends BaseCommand
         }
         $homeId = $args["homeName"];
 
-        Await::f2c(function () use ($sender, $homeId): \Generator {
-            /** @var Home $home */
-            $home = yield from HomePlayerManager::getInstance()->getPlayer($sender)->getHome($homeId);
-            if (!$home->getPosition()) {
-                throw new HomePositionInvalidException($homeId);
-            }
-            return $home;
-        }, function (Home $home) use ($sender): void {
+        Await::g2c(HomePlayerManager::getInstance()->getPlayer($sender)->getHome($homeId), function (Home $home) use ($sender): void {
             $timer = HomeManager::getInstance()->getTimer();
             if ($timer === false) {
                 $sender->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::success_teleportation_player_sender($home->getName())));
