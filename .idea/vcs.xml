@@ -2,5 +2,6 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../../../PHP-8.0-Windows-x64/PM5/phpstorm-stubs" vcs="Git" />
   </component>
 </project>

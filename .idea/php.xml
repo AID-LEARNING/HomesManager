@@ -11,11 +11,12 @@
   </component>
   <component name="PhpIncludePathManager">
     <include_path>
-      <path value="$PROJECT_DIR$/../lib/PocketMine-MP" />
-      <path value="$PROJECT_DIR$/../Virions" />
+      <path value="$PROJECT_DIR$/../../lib/" />
+      <path value="$PROJECT_DIR$/../../Virions" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.0" />
+  <component name="PhpRuntimeConfiguration" default_stubs_path="G:\PHP-8.0-Windows-x64\PM5\phpstorm-stubs" />
   <component name="PhpStanOptionsConfiguration">
     <option name="transferred" value="true" />
   </component>

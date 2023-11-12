@@ -33,6 +33,10 @@ class HomePlayer
      */
     private array $homes = [];
 
+    private bool $isMove = false;
+
+    private bool $isGoHome = false;
+
     public function __construct(private Player|string $player)
     {
         $this->dataHomes = new Config(Path::join(PLUGIN_DATA_PATH, "datas", strtolower($this->getPlayerName()) . ".json"));
@@ -43,6 +47,38 @@ class HomePlayer
         foreach ($this->dataHomes->getAll() as $name => $information){
             $this->homes[strtolower($name)] = new Home($name,  $information['world'], new Vector3($information["x"],$information["y"], $information['z']));
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMove(): bool
+    {
+        return $this->isMove;
+    }
+
+    /**
+     * @param bool $isMove
+     */
+    public function setIsMove(bool $isMove = true): void
+    {
+        $this->isMove = $isMove;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isGoHome(): bool
+    {
+        return $this->isGoHome;
+    }
+
+    /**
+     * @param bool $isGoHome
+     */
+    public function setIsGoHome(bool $isGoHome = true): void
+    {
+        $this->isGoHome = $isGoHome;
     }
 
     /**

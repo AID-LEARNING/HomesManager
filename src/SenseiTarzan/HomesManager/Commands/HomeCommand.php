@@ -12,6 +12,8 @@ use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\player\Player;
 use SenseiTarzan\HomesManager\Class\Exception\HomeNotFoundException;
 use SenseiTarzan\HomesManager\Class\Exception\HomePositionInvalidException;
+use SenseiTarzan\HomesManager\Class\Exception\PlayerMoveException;
+use SenseiTarzan\HomesManager\Class\Exception\PlayerOfflineException;
 use SenseiTarzan\HomesManager\Class\Home\Home;
 use SenseiTarzan\HomesManager\Commands\subCommands\AdminSubCommand;
 use SenseiTarzan\HomesManager\Commands\subCommands\removeHomeSubCommand;
@@ -52,7 +54,8 @@ class HomeCommand extends BaseCommand
         }
         $homeId = $args["homeName"];
 
-        Await::g2c(HomePlayerManager::getInstance()->getPlayer($sender)->getHome($homeId), function (Home $home) use ($sender): void {
+        $homePlayer = HomePlayerManager::getInstance()->getPlayer($sender);
+        Await::g2c($homePlayer->getHome($homeId), function (Home $home) use ($sender, $homePlayer): void {
             $timer = HomeManager::getInstance()->getTimer();
             if ($timer === false) {
                 $sender->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::success_teleportation_player_sender($home->getName())));
@@ -62,42 +65,54 @@ class HomeCommand extends BaseCommand
             if (HomeCooldown::playerInList($sender)) {
                 return;
             }
-
-            $lastPosition = $sender->getPosition();
+            $homePlayer->setIsGoHome();
 
             Await::f2c(
             /**
              * @throws Exception
              */
-                function () use ($sender, $lastPosition, $timer) {
+                function () use ($sender, $timer, $homePlayer) {
                     HomeCooldown::addPlayerInList($sender);
                     for ($clock = $timer; $clock > 0; $clock--) {
                         if (!$sender->isConnected()) {
-                            throw new Exception(message: "Player disconnected", code: 960);
+                            throw new PlayerOfflineException();
                         }
-                        if ($lastPosition->subtractVector($sender->getPosition())->lengthSquared() > 2) {
-                            throw new Exception(message: "Player moved", code: 980);
+                        if ($homePlayer->isMove()){
+                            throw new PlayerMoveException();
                         }
                         $sender->sendActionBarMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::timer_clock_player_sender($clock)));
                         $sender->broadcastSound(HomeManager::getInstance()->getSoundClock(), [$sender]);
                         $sender->getEffects()->add(new EffectInstance(VanillaEffects::BLINDNESS(), 1000000, 10, false));
                         yield from Main::sleeper();
                     }
+                    if (!$sender->isConnected()) {
+                        throw new PlayerOfflineException();
+                    }
+                    if ($homePlayer->isMove()){
+                        throw new PlayerMoveException();
+                    }
                     $sender->getEffects()->remove(VanillaEffects::BLINDNESS());
-                }, function () use ($sender, $home) {
+                }, function () use ($sender, $home, $homePlayer) {
                 HomeCooldown::removePlayerInList($sender);
+                $homePlayer->setIsMove(false);
+                $homePlayer->setIsGoHome(false);
                 $sender->sendActionBarMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::success_clock_teleportation_player_sender()));
                 $sender->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::success_teleportation_player_sender($home->getName())));
                 $sender->broadcastSound(HomeManager::getInstance()->getSoundSuccessTeleportation(), [$sender]);
                 $sender->teleport($home->getPosition());
-            }, function (Exception $exception) use ($sender) {
-                HomeCooldown::removePlayerInList($sender);
-                if ($exception->getCode() === 960) return;
-                $sender->broadcastSound(HomeManager::getInstance()->getSoundDeniedTeleportation(), [$sender]);
-                $sender->sendActionBarMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::denied_clock_teleportation_player_sender()));
-                $sender->getEffects()->remove(VanillaEffects::BLINDNESS());
-
-            });
+            }, [
+                PlayerOfflineException::class => function() use ($sender) {
+                    HomeCooldown::removePlayerInList($sender);
+                },
+                PlayerMoveException::class => function () use ($sender, $homePlayer) {
+                    HomeCooldown::removePlayerInList($sender);
+                    $homePlayer->setIsMove(false);
+                    $homePlayer->setIsGoHome(false);
+                    $sender->broadcastSound(HomeManager::getInstance()->getSoundDeniedTeleportation(), [$sender]);
+                    $sender->sendActionBarMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::denied_clock_teleportation_player_sender()));
+                    $sender->getEffects()->remove(VanillaEffects::BLINDNESS());
+                }
+            ]);
         }, [
             HomeNotFoundException::class => function (HomeNotFoundException $exception) use ($sender): void {
                 $sender->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($sender, CustomKnownTranslationFactory::error_home_no_exist($exception->getMessage())));
