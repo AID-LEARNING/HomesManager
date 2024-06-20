@@ -19,6 +19,10 @@ class Home implements JsonSerializable
         return new self($name,$position->getWorld()->getFolderName(), $position->asVector3());
     }
 
+    public function getId(): string {
+        return strtolower($this->getName());
+    }
+
     /**
      * @return string
      */

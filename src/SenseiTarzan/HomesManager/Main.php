@@ -4,6 +4,7 @@ namespace SenseiTarzan\HomesManager;
 
 use CortexPE\Commando\PacketHooker;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\Task;
 use pocketmine\utils\SingletonTrait;
 use SenseiTarzan\ExtraEvent\Component\EventLoader;
 use SenseiTarzan\HomesManager\Commands\HomeCommand;
@@ -12,6 +13,7 @@ use SenseiTarzan\HomesManager\Component\HomePlayerManager;
 use SenseiTarzan\HomesManager\Listener\PlayerListener;
 use SenseiTarzan\LanguageSystem\Component\LanguageManager;
 use SenseiTarzan\Path\PathScanner;
+use SOFe\AwaitGenerator\Await;
 use Symfony\Component\Filesystem\Path;
 
 class Main extends PluginBase
@@ -42,6 +44,23 @@ class Main extends PluginBase
         EventLoader::loadEventWithClass($this, PlayerListener::class);
         $this->getServer()->getCommandMap()->register("senseitarzan", new HomeCommand($this,"home"));
         LanguageManager::getInstance()->loadCommands("home");
+    }
+
+    public static function sleeper(): \Generator{
+        return Await::promise(function ($resolve, $reject) {
+           $task = new class($resolve, $reject) extends Task{
+                public function __construct(private $resolve, private $reject){}
+               public function onRun(): void
+               {
+                     ($this->resolve)();
+               }
+               public function onCancel(): void
+               {
+                   ($this->reject)(new \Exception("Task cancelled", code: 950));
+               }
+           };
+           Main::getInstance()->getScheduler()->scheduleDelayedTask($task, 20);
+        });
     }
 
 }

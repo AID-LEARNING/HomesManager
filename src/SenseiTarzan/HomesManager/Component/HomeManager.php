@@ -6,11 +6,16 @@ use jojoe77777\FormAPI\SimpleForm;
 use pocketmine\player\Player;
 use pocketmine\utils\Config;
 use pocketmine\utils\SingletonTrait;
+use SenseiTarzan\HomesManager\Class\Exception\HomeNotFoundException;
+use SenseiTarzan\HomesManager\Class\Exception\HomePositionInvalidException;
+use SenseiTarzan\HomesManager\Class\Exception\HomeSaveException;
+use SenseiTarzan\HomesManager\Class\Home\Home;
 use SenseiTarzan\HomesManager\Class\Home\HomePlayer;
 use SenseiTarzan\HomesManager\Class\Sound\HomeSound;
 use SenseiTarzan\HomesManager\Main;
 use SenseiTarzan\HomesManager\Utils\CustomKnownTranslationFactory;
 use SenseiTarzan\LanguageSystem\Component\LanguageManager;
+use SOFe\AwaitGenerator\Await;
 
 class HomeManager
 {
@@ -72,7 +77,7 @@ class HomeManager
 
     public function adminIndexUI(Player $player, HomePlayer $homePlayer): void
     {
-        $ui = new SimpleForm(function (Player $player, ?string $homeId) use($homePlayer): void{
+        $ui = new SimpleForm(function (Player $player, ?string $homeId) use ($homePlayer): void {
             if ($homeId === null) {
                 return;
             }
@@ -80,10 +85,14 @@ class HomeManager
         });
         $ui->setTitle(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::title_home_list($homePlayer->getPlayerName())));
 
-        foreach ($homePlayer->getHomes() as $homeId => $home){
-            $ui->addButton($home->getName(), label: $homeId);
-        }
-        $player->sendForm($ui);
+        Await::g2c($homePlayer->getHomes(), /**
+         * @param Home[] $homes
+         */ function (array $homes) use ($ui, $player): void {
+            foreach ($homes as $homeId => $home) {
+                $ui->addButton($home->getName(), label: $homeId);
+            }
+            $player->sendForm($ui);
+        });
     }
 
     public function adminHomeUI(Player $player, HomePlayer $homePlayer, string $homeId): void
@@ -94,24 +103,33 @@ class HomeManager
                 return;
             }
             if ($data === 1) {
-                if (!$homePlayer->removeHome($homeId)) {
-                    $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::error_home_no_exist($$homeId)));
-                    return;
-                }
-                $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::remove_home_player_admin($homePlayer->getPlayerName(), $homeId)));
+                Await::g2c($homePlayer->removeHome($homeId), function () use ($player, $homePlayer, $homeId){
+                    $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::remove_home_player_admin($homePlayer->getPlayerName(), $homeId)));
+                },
+                [
+                    HomeNotFoundException::class => function (HomeNotFoundException $exception) use ($player): void {
+                        $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::error_home_no_exist($exception->getMessage())));
+                    },
+                    HomeSaveException::class => function (HomeSaveException $exception) use ($homePlayer, $player): void {
+                        Main::getInstance()->getLogger()->alert("[{$homePlayer->getPlayerName()}] {$exception->getMessage()}");
+                    }
+                ]);
                 return;
             }
-            if (!($home = $homePlayer->getHome($homeId))) {
-                $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::error_home_no_exist($homeId)));
-                return;
-            }
-            if (!($position = $home->getPosition())) {
-                $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::denied_teleportation_player_sender($home->getName())));
+            Await::g2c($homePlayer->getHome($homeId), function (Home $home) use ($player, $homePlayer): void {
+                $player->teleport($home->getPosition());
+                $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::teleport_home_player_admin($homePlayer->getPlayerName(), $home->getName())));
 
-                return;
-            }
-            $player->teleport($position);
-            $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::teleport_home_player_admin($homePlayer->getPlayerName(),$home->getName())));
+            }, [
+                HomeNotFoundException::class => function (HomeNotFoundException $exception) use ($player): void {
+                    $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::error_home_no_exist($exception->getMessage())));
+
+                },
+                HomePositionInvalidException::class => function (HomePositionInvalidException $exception) use ($player) {
+                    $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::denied_teleportation_player_sender($exception->getMessage())));
+
+                }
+            ]);
         });
         $ui->setTitle(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::title_home_select($homeId)));
         $ui->addButton(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::button_teleport_home_admin()));

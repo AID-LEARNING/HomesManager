@@ -2,14 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../Virions/Commando/.idea/Commando.iml" filepath="$PROJECT_DIR$/../Virions/Commando/.idea/Commando.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Virions/ExtraEvent/.idea/ExtraEvent.iml" filepath="$PROJECT_DIR$/../Virions/ExtraEvent/.idea/ExtraEvent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Virions/FormAPI/.idea/FormAPI.iml" filepath="$PROJECT_DIR$/../Virions/FormAPI/.idea/FormAPI.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/HomesManager.iml" filepath="$PROJECT_DIR$/.idea/HomesManager.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Virions/LanguageSystem/.idea/LanguageSystem.iml" filepath="$PROJECT_DIR$/../Virions/LanguageSystem/.idea/LanguageSystem.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Virions/LibExtraPath/.idea/LibExtraPath.iml" filepath="$PROJECT_DIR$/../Virions/LibExtraPath/.idea/LibExtraPath.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Virions/LibTaskAttribute/.idea/LibTaskAttribute.iml" filepath="$PROJECT_DIR$/../Virions/LibTaskAttribute/.idea/LibTaskAttribute.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../RolesManager/.idea/RolesManager.iml" filepath="$PROJECT_DIR$/../RolesManager/.idea/RolesManager.iml" />
     </modules>
   </component>
 </project>

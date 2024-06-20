@@ -6,8 +6,7 @@ use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\player\Player;
 use pocketmine\utils\SingletonTrait;
 use SenseiTarzan\HomesManager\Class\Home\HomePlayer;
-use SenseiTarzan\HomesManager\Task\HomeCooldown;
-use WeakMap;
+use SenseiTarzan\HomesManager\Utils\HomeCooldown;
 
 class HomePlayerManager
 {
