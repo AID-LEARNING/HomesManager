@@ -29,6 +29,7 @@ class Main extends PluginBase
                 @$this->saveResource(str_replace($search, "", $file));
             }
         }
+        register_shutdown_function($this->onDisable(...));
         new HomeManager($this);
         new HomePlayerManager();
         new LanguageManager($this);
@@ -42,6 +43,11 @@ class Main extends PluginBase
         EventLoader::loadEventWithClass($this, PlayerListener::class);
         $this->getServer()->getCommandMap()->register("senseitarzan", new HomeCommand($this,"home"));
         LanguageManager::getInstance()->loadCommands("home");
+    }
+
+    protected function onDisable(): void
+    {
+        HomeManager::getInstance()->saveAllPlayer();
     }
 
 }

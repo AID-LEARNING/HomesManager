@@ -14,7 +14,9 @@ sounds:
     volume: 1 # not required
     pitch: 1 # not required
 
-size-home-permission:
+
+
+number-home-permission:
   pocketmine.group.operator: 999
   vip.permission.home: 10
   pocketmine.group.user: 5 #default for all player who no has another permissions

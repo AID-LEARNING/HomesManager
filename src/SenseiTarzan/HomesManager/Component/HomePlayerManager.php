@@ -12,13 +12,22 @@ use WeakMap;
 class HomePlayerManager
 {
     use SingletonTrait;
+
+    /**
+     * @var array<string, HomePlayer>
+     */
     private array $players = [];
     public function __construct()
     {
     }
 
+    public function getPlayers(): array
+    {
+        return $this->players;
+    }
+
     public function loadPlayer(Player $player): void{
-         $this->players[strtolower($player->getName())] = new HomePlayer($player);
+         $this->players[strtolower($player->getName())] = new HomePlayer(\WeakReference::create($player));
     }
     public function loadPlayerOffline(string $player): HomePlayer{
          return new HomePlayer($player);
@@ -30,10 +39,14 @@ class HomePlayerManager
     }
 
     public function unloadPlayer(Player $player): void{
+        if (isset($this->players[strtolower($player->getName())]))
+            $this->players[strtolower($player->getName())]->save();
         unset($this->players[strtolower($player->getName())]);
         if (HomeCooldown::playerInList($player)){
             HomeCooldown::removePlayerInList($player);
-            $player->getEffects()->remove(VanillaEffects::BLINDNESS());
+            $effect = $player->getEffects()->get(VanillaEffects::BLINDNESS());
+            if ($effect->getAmplifier() === 255)
+                $player->getEffects()->remove(VanillaEffects::BLINDNESS());
         }
     }
 

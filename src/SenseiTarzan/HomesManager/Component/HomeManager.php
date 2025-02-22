@@ -3,7 +3,9 @@
 namespace SenseiTarzan\HomesManager\Component;
 
 use jojoe77777\FormAPI\SimpleForm;
+use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\player\Player;
+use pocketmine\scheduler\ClosureTask;
 use pocketmine\utils\Config;
 use pocketmine\utils\SingletonTrait;
 use SenseiTarzan\HomesManager\Class\Home\HomePlayer;
@@ -27,13 +29,29 @@ class HomeManager
      */
     private array $sizeByPermission = [];
 
+    private int|array $timer = [];
+
     public function __construct(Main $pl)
     {
         self::setInstance($this);
         $this->plugin = $pl;
         $this->config = $pl->getConfig();
+        $this->timer = $pl->getConfig()->get("timer", 5);
+        if(is_array($this->timer))
+            asort($this->timer);
         $this->loadSound();
         $this->sortMaxHome();
+        $pl->getScheduler()->scheduleRepeatingTask(new ClosureTask(function () {
+            $this->saveAllPlayer();
+        }), 1200);
+    }
+
+    public function saveAllPlayer(): void
+    {
+        $players = HomePlayerManager::getInstance()->getPlayers();
+        foreach ($players as $player) {
+            $player->save();
+        }
     }
 
     public function getSoundDeniedTeleportation(): HomeSound{
@@ -56,7 +74,7 @@ class HomeManager
 
     private function sortMaxHome(): void
     {
-        $sizeByPermissions = $this->config->get("size-home-permission", []);
+        $sizeByPermissions = $this->config->get("number-home-permission", []);
         arsort($sizeByPermissions);
         $this->sizeByPermission = $sizeByPermissions;
     }
@@ -98,6 +116,8 @@ class HomeManager
                     $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::error_home_no_exist($$homeId)));
                     return;
                 }
+                if($homePlayer->getPlayer() === null)
+                    $homePlayer->save();
                 $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::remove_home_player_admin($homePlayer->getPlayerName(), $homeId)));
                 return;
             }
@@ -119,8 +139,17 @@ class HomeManager
         $player->sendForm($ui);
     }
 
-    public function getTimer(): int|false
+    public function getTimer(?Player $player = null): int|false
     {
-        return $this->config->get("timer", 3);
+        if (is_int($this->timer))
+            return $this->timer;
+        if(!$player)
+            return $this->timer[DefaultPermissionNames::GROUP_USER] ?? 0;
+        foreach ($this->timer as $key => $timerData){
+            if($player->hasPermission($key)){
+                return $timerData;
+            }
+        }
+        return 0;
     }
 }

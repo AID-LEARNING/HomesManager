@@ -16,6 +16,7 @@ use SenseiTarzan\HomesManager\Component\HomePlayerManager;
 use SenseiTarzan\HomesManager\Task\HomeCooldown;
 use SenseiTarzan\HomesManager\Utils\CustomKnownTranslationFactory;
 use SenseiTarzan\LanguageSystem\Component\LanguageManager;
+use function pocketmine\tools\generate_blockstate_upgrade_schema\main;
 
 class HomeCommand extends BaseCommand
 {
@@ -54,6 +55,6 @@ class HomeCommand extends BaseCommand
             $sender->teleport($position);
             return;
         }
-        new HomeCooldown($sender,HomeManager::getInstance()->getTimer(),$home);
+        new HomeCooldown($sender, HomeManager::getInstance()->getTimer($sender),$home);
     }
 }

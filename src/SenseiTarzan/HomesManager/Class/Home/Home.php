@@ -75,6 +75,6 @@ class Home implements JsonSerializable
 
     public function jsonSerialize(): array
     {
-        return ['x' =>  $this->getVector3()->getFloorY(), 'y' => $this->getVector3()->getFloorY(), 'z' => $this->getVector3()->getFloorZ(), 'world' => $this->getWorldName()];
+        return ['x' =>  $this->getVector3()->getFloorX(), 'y' => $this->getVector3()->getFloorY(), 'z' => $this->getVector3()->getFloorZ(), 'world' => $this->getWorldName()];
     }
 }

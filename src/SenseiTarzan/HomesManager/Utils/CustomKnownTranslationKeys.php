@@ -8,6 +8,7 @@ class CustomKnownTranslationKeys
     const ADD_HOME_PLAYER_SENDER = "HomePlayer.sender.add";
     const REPLACE_HOME_PLAYER_SENDER = "HomePlayer.sender.replace";
     const REMOVE_HOME_PLAYER_SENDER = "HomePlayer.sender.remove";
+    const EXIST_HOME_PLAYER_SENDER = "HomePlayer.sender.exist";
     const SUCCESS_TELEPORTATION_PLAYER_SENDER = "HomePlayer.sender.teleport.success";
     const DENIED_TELEPORTATION_PLAYER_SENDER = "HomePlayer.sender.teleport.denied";
     const TIMER_CLOCK_PLAYER_SENDER = "HomePlayer.sender.clock.timer";

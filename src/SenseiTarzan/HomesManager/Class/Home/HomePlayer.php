@@ -12,6 +12,7 @@ use SenseiTarzan\HomesManager\Component\HomeManager;
 use SenseiTarzan\HomesManager\Utils\CustomKnownTranslationFactory;
 use SenseiTarzan\LanguageSystem\Component\LanguageManager;
 use Symfony\Component\Filesystem\Path;
+use WeakReference;
 use const SenseiTarzan\HomesManager\PLUGIN_DATA_PATH;
 
 class HomePlayer
@@ -25,7 +26,10 @@ class HomePlayer
      */
     private array $homes = [];
 
-    public function __construct(private Player|string $player)
+    /**
+     * @param WeakReference<Player>|string $player
+     */
+    public function __construct(private readonly WeakReference|string $player)
     {
         $this->dataHomes = new Config(Path::join(PLUGIN_DATA_PATH, "datas", strtolower($this->getPlayerName()) . ".json"));
         $this->loadHomes();
@@ -37,39 +41,50 @@ class HomePlayer
         }
     }
 
+    public function getPlayer(): ?Player
+    {
+        return is_string($this->player) ? null : $this->player->get();
+    }
+
     /**
      * no work if $this->player is not Player
      * @internal
      */
     public function addHome(string $name, Position $position): void{
-        if (!($this->player instanceof Player)) return;
-        if (count($this->homes) >= ($maxHome = HomeManager::getInstance()->getMaxHomeByPermissions($this->player))){
-            $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::error_home_max($maxHome)));
+        $player = $this->getPlayer();
+        if(!$player)
+            return;
+        if (count($this->homes) >= ($maxHome = HomeManager::getInstance()->getMaxHomeByPermissions($player))){
+            $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::error_home_max($maxHome)));
             return;
         }
-        if (isset($this->homes[$id = strtolower($name)])){
+        if (isset($this->homes[$id = strtolower($name)]))
             return;
-        }
         $this->homes[$id] = $info = Home::create($name, $position);
         $this->dataHomes->set($name, $info->jsonSerialize());
-        $this->dataHomes->save();
-        $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::add_home_player_sender($name, $position)));
+        $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::add_home_player_sender($name, $position)));
     }
 
     public function replaceHome(string $name, Position $position): void
     {
+        $player = $this->getPlayer();
         if (!isset($this->homes[$id = strtolower($name)])){
             $this->addHome($name, $position);
             return;
         }
         ($info = $this->homes[$id])->setPosition($position);
         $this->dataHomes->set($name, $info->jsonSerialize());
-        $this->dataHomes->save();
-        $this->player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($this->player, CustomKnownTranslationFactory::replace_home_player_sender($name, $position)));
+        if($player)
+            $player->sendMessage(LanguageManager::getInstance()->getTranslateWithTranslatable($player, CustomKnownTranslationFactory::replace_home_player_sender($name, $position)));
     }
 
     public function getHomes(): array{
         return $this->homes;
+    }
+
+    public function existsHome(string $name): bool
+    {
+        return isset($this->homes[strtolower($name)]);
     }
 
     public function getHome(string $name): false|Home{
@@ -81,24 +96,21 @@ class HomePlayer
         if (!isset($this->homes[strtolower($name)])) return false;
         unset($this->homes[strtolower($name)]);
         $this->dataHomes->remove($name);
-        $this->dataHomes->save();
         return true;
     }
 
-    /**
-     * @return Player| string
-     */
-    public function getPlayer(): Player|string
+    public function save(): void
     {
-        return $this->player;
+        if ($this->dataHomes->hasChanged())
+            $this->dataHomes->save();
     }
 
     /**
      * @return Player| string
      */
-    public function getPlayerName(): Player|string
+    public function getPlayerName(): ?string
     {
-        return $this->player instanceof  Player  ? $this->player->getName() : $this->player;
+        return is_string($this->player) ? $this->player : $this->getPlayer()?->getName() ?? "error";
     }
 
 }

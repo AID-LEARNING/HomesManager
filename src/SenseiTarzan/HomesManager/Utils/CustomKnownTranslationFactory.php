@@ -36,6 +36,11 @@ class CustomKnownTranslationFactory
         return new Translatable(CustomKnownTranslationKeys::REMOVE_HOME_PLAYER_SENDER, ["home" => $name]);
     }
 
+    public static function exist_home_player_sender(string $name): Translatable
+    {
+        return new Translatable(CustomKnownTranslationKeys::EXIST_HOME_PLAYER_SENDER, ["home" => $name]);
+    }
+
     public static function error_home_no_exist(string $home): Translatable
     {
         return new Translatable(CustomKnownTranslationKeys::ERROR_HOME_NO_EXIST, ["home" => $home]);
