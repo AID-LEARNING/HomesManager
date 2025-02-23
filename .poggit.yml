@@ -15,6 +15,7 @@ projects:
         version: ^1.0.3
       - src: AID-LEARNING/ExtraEvent/libEventAttribute
         version: ^1.0.2
+        branch: pm5
       - src: AID-LEARNING/FormAPI/libFormAPI
         version: ^2.1.0
       - src: AID-LEARNING/IconForm/libIconForm
